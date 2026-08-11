@@ -1,82 +1,113 @@
-# 🩺 Melanoma Detection using CNN and Transfer Learning
+# Melanoma Detection using CNN & Transfer Learning
 
-A deep learning system that classifies dermoscopic/clinical skin lesion images as **Melanoma**
-or **Benign**, comparing five transfer-learning CNN architectures trained on the MIDAS
-dermoscopy dataset. The best-performing model is deployed as an interactive Streamlit web app.
+A deep learning-based system for classifying skin lesion images as melanoma or non-melanoma, built by training a custom CNN alongside five pretrained transfer learning architectures — Efficientnet, VGG, Inception, ResNet and DenseNet. The best-performing model (selected using metrics like accuracy, sensitivity, and specificity) powers an interactive Streamlit web app that lets users upload a skin lesion image and receive an instant diagnosis prediction along with a confidence score that provides justification.
 
-## 🚀 Features
-- Trains and compares **5 CNN architectures** via transfer learning:
-  - EfficientNet
-  - VGG16
-  - ResNet50
-  - DenseNet121
-  - InceptionV3
-- Upload a skin lesion image through a web interface and get an instant prediction
-- Confidence score + probability breakdown for both classes
-- Clinically-worded recommendations based on the prediction (e.g. "consult a dermatologist")
-- Uses the **ABCDE rule** guidance for skin self-examination in the benign case
+## Tech Stack
 
-## 🛠️ Tech Stack
-| Component | Tool |
+| Category | Tools / Libraries |
 |---|---|
-| Model architectures | EfficientNet, VGG16, ResNet50, DenseNet121, InceptionV3 (Keras/TensorFlow) |
-| Dataset | MIDAS dermoscopy dataset |
-| Deployment | Streamlit |
-| Image handling | Pillow (PIL), NumPy |
+| **Language** | Python |
+| **Deep Learning Framework** | TensorFlow / Keras |
+| **Transfer Learning Models** | VGG16, InceptionV3, ResNet50, DenseNet121, EfficientNetB0 |
+| **Data Processing** | NumPy, Pandas, OpenCV |
+| **Visualization** | Matplotlib, Seaborn |
+| **Evaluation** | Scikit-learn |
+| **Web App / Deployment** | Streamlit |
+| **Environment** | Jupyter Notebook / Google Colab |
 
-## 📂 Project Structure
+---
+
+## Architecture
+
 ```
-├── app.py                      # Streamlit web app (loads trained VGG16 model for inference)
-├── model_1_efficientnet.py     # EfficientNet training script
-├── model_2_vgg.py              # VGG16 training script
-├── model_3_resnet.py           # ResNet50 training script
-├── model_4_densenet.py         # DenseNet121 training script
-├── model_5_inception.py        # InceptionV3 training script
-├── requirements.txt
-├── .gitignore
-├── LICENSE
-└── README.md
+                          ┌────────────────────────┐
+                          │   Skin Lesion Dataset  │
+                          │   (Stanford Dataset)   │
+                          └───────────┬────────────┘
+                                      │
+                         Preprocessing & Augmentation
+                (resize, normalize, rotation, flip, zoom, etc.)
+                                      │
+                     ┌────────────────┴────────────────┐
+                     │                                 │
+             Train/Val/Test Split                Class Balancing
+                     │                                 │
+                     └────────────────┬────────────────┘
+                                      │
+              ┌───────────────────────┼────────────────────────┐
+              │                       │                        │
+      ┌───────▼──────┐       ┌────────▼──────────┐      ┌────────▼──────────┐
+      │  Custom CNN  │       │ Transfer Learning │      │ Transfer Learning │
+      │   (from      │       │  Models (frozen   │      │  Models (fine-    │
+      │   scratch)   │       │  base + custom    │      │  tuned layers)    │
+      └───────┬──────┘       │  classifier head) │      └────────┬──────────┘
+              │              └─────────┬─────────┘               │
+              └────────────────────────┼────────────────────────────┘
+                                       │
+                         Model Training & Validation
+                                       │
+                    Evaluation (Accuracy, Sensitivity,
+                        Specificity, AUC-ROC, F1-Score)
+                                       │
+                         Best Model Selection
+                                       │
+                         Model Serialization (.h5 / .keras)
+                                       │
+                         ┌─────────────▼─────────────┐
+                         │      Streamlit Web App    │
+                         │  ┌────────────────────────│
+                         │  │  Image Upload Interface│ │
+                         │  ├────────────────────────┤ │
+                         │  │  Preprocessing Pipeline│ │
+                         │  ├────────────────────────┤ │
+                         │  │   Model Inference      │ │
+                         │  ├────────────────────────┤ │
+                         │  │  Diagnosis Output +    │ │
+                         │  │  Confidence Score      │ │
+                         │  └────────────────────────┘ │
+                         └─────────────────────────────┘
 ```
 
-## ⚙️ Setup
+---
 
-1. Clone the repo
-   ```bash
-   git clone https://github.com/shrestaabigail101-sys/Melanona-Detection-using-CNN-and-Transfer-Learning-.git
-   cd Melanona-Detection-using-CNN-and-Transfer-Learning-
-   ```
+## Models Compared
 
-2. Install dependencies
-   ```bash
-   pip install -r requirements.txt
-   ```
+| Model | Type | Notes |
+|---|---|---|
+| VGG16/19 | Transfer Learning | Deep, uniform convolutional blocks |
+| InceptionV3 | Transfer Learning | Multi-scale feature extraction via inception modules |
+| ResNet50 | Transfer Learning | Residual connections to combat vanishing gradients |
+| DenseNet121 | Transfer Learning | Dense connectivity for feature reuse |
+| EfficientNetB0 | Transfer Learning | Compound scaling for efficiency and accuracy |
 
-3. **Model weights**: `app.py` expects a trained model file named `melanoma_vgg16_model.h5` in
-   the project root. This file is not included in the repo (too large for GitHub). Train it
-   yourself using `model_2_vgg.py`, or download a pre-trained copy from:
-   `<add your Google Drive / Hugging Face link here>`
+---
 
-4. Run the app
-   ```bash
-   streamlit run app.py
-   ```
+## Evaluation Metrics
 
-5. Upload a skin lesion image in the browser and view the prediction.
+Models were compared using the following metrics to account for the clinical importance of minimizing false negatives:
 
-## 📊 Model Training
-Each `model_*.py` script fine-tunes a pretrained CNN backbone (ImageNet weights) on the MIDAS
-dermoscopy dataset for binary classification (melanoma vs. benign). Run the corresponding
-script to reproduce training for that architecture.
+- **Accuracy** — overall correctness of predictions
+- **Sensitivity (Recall)** — ability to correctly identify melanoma cases (critical for early detection)
+- **Specificity** — ability to correctly identify non-melanoma cases
+- **Precision**
+- **F1-Score**
+- **AUC-ROC Curve**
+- **Confusion Matrix**
 
-## ⚠️ Disclaimer
-This tool is built for educational/research purposes only. It is **not a diagnostic device**
-and should never replace professional medical evaluation. Predictions are not a substitute for
-a dermatologist's assessment or biopsy.
+The model with the best balance of sensitivity and specificity (prioritizing sensitivity, given the cost of missing a melanoma case) was selected for deployment.
 
-## 📌 Notes
-- Built as a college project comparing transfer-learning architectures for medical image
-  classification.
-- Image input is resized to 224×224 and normalized before inference.
+---
 
-## 📄 License
-MIT
+## Future Improvements
+
+- Incorporate Grad-CAM/explainability to visualize regions influencing the model's decision
+- Expand to multi-class classification (e.g., melanoma, nevus, basal cell carcinoma, etc.)
+- Add ensemble modeling across top-performing architectures
+- Deploy on cloud (Streamlit Community Cloud / AWS / Azure) with a public inference endpoint
+- Improve dataset diversity to reduce bias across skin tones
+
+---
+
+## Disclaimer
+
+This project is intended for educational and research purposes only. It is not a certified medical diagnostic tool and should not be used as a substitute for professional medical advice, diagnosis, or treatment. Always consult a qualified dermatologist for skin health concerns.
